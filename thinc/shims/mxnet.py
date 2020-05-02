@@ -93,6 +93,10 @@ class MXNetShim(Shim):
             return
         # Collect parameters if we don't have them
         for name, param in self._model.collect_params().items():
+            # DCMMC: avoid get gradient array for Parameter with grad_req='null'
+            # https://github.com/awslabs/mxboard/issues/37
+            if param.grad_req == 'null':
+                continue
             key = f"mxnet_{self.id}_{name}"
             sgd.nr_update[key] += 1
             xp_param = mxnet2xp(param.grad())
